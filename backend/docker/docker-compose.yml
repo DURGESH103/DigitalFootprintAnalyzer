@@ -1,0 +1,82 @@
+version: "3.9"
+
+services:
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: yourpassword
+      MYSQL_DATABASE: digital_footprint
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  python-ai:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.python
+    ports:
+      - "8000:8000"
+    env_file:
+      - ../python-ai/.env
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+  node-api:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.node
+    ports:
+      - "3000:3000"
+    env_file:
+      - ../node-api/.env
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      python-ai:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+  # BullMQ worker runs as a separate process
+  analysis-worker:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.node
+    command: node src/workers/analysis.worker.js
+    env_file:
+      - ../node-api/.env
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      python-ai:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  mysql_data:
