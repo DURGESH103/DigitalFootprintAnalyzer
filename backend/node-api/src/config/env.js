@@ -18,34 +18,38 @@ if (process.env.JWT_SECRET.length < 32) {
 }
 
 module.exports = {
-  env: process.env.NODE_ENV || 'development',
-  port: process.env.PORT || 3000,
+  env:        process.env.NODE_ENV || 'development',
+  port:       parseInt(process.env.PORT, 10) || 3000,
   corsOrigin: process.env.CORS_ORIGIN || 'http://localhost:5173',
   db: {
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT,
-    user: process.env.DB_USER,
+    host:     process.env.DB_HOST,
+    port:     parseInt(process.env.DB_PORT, 10) || 3306,
+    user:     process.env.DB_USER,
     password: process.env.DB_PASSWORD,
-    name: process.env.DB_NAME,
+    name:     process.env.DB_NAME,
   },
   redis: {
     host: process.env.REDIS_HOST,
     port: parseInt(process.env.REDIS_PORT, 10) || 6379,
   },
   jwt: {
-    secret: process.env.JWT_SECRET,
-    expiresIn: process.env.JWT_EXPIRES_IN || '15m',
-    refreshSecret: process.env.JWT_REFRESH_SECRET,
+    secret:           process.env.JWT_SECRET,
+    expiresIn:        process.env.JWT_EXPIRES_IN        || '15m',
+    refreshSecret:    process.env.JWT_REFRESH_SECRET,
     refreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d',
   },
   github: {
-    token: process.env.GITHUB_TOKEN,
-    topRepos: parseInt(process.env.GITHUB_TOP_REPOS, 10) || 5,
+    token:    process.env.GITHUB_TOKEN,
+    topRepos: parseInt(process.env.GITHUB_TOP_REPOS, 10) || 10,
     cacheTtl: parseInt(process.env.GITHUB_CACHE_TTL, 10) || 3600,
   },
   ai: {
-    url: process.env.PYTHON_AI_URL || 'http://localhost:8000',
+    url:     process.env.PYTHON_AI_URL     || 'http://localhost:8000',
     timeout: parseInt(process.env.PYTHON_AI_TIMEOUT, 10) || 30000,
     retries: parseInt(process.env.PYTHON_AI_RETRIES, 10) || 3,
+  },
+  app: {
+    baseUrl:    process.env.APP_BASE_URL    || 'http://localhost:5173',
+    uploadDir:  process.env.UPLOAD_DIR      || './uploads',
   },
 };
